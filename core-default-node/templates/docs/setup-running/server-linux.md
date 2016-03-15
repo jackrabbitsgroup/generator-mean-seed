@@ -34,11 +34,7 @@ For a remote server, SSH in to login with `ssh [user]@[ip address or domain of s
 		- NOTE: use a 64 bit build since the 32 bit builds of mongo/ubuntu have a 2GB memory limit! http://www.mongodb.org/downloads#32-bit-limit
 7. Install PhantomJS
 	1. `sudo apt-get install phantomjs`
-<%
-if(optCssPreprocessor =='scss') {
-print("8. Install Ruby and Sass ( http://sass-lang.com/install )");
-}
-%>
+8. Install Ruby and Sass ( http://sass-lang.com/install )
 
 	
 ## Note on file sizes / server space
