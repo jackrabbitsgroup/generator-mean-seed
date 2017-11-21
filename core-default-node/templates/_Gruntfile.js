@@ -30,7 +30,7 @@ Other calls (relatively in order of importantance / most used). Scroll to the bo
 	`grunt dev-build` for watching and auto-running BUILD (i.e. `grunt q`) only
 - test
 	`grunt karma-cov` to run/build karma/angular coverage report (since grunt dev watch task does NOT do this due to a bug/issue with karma where running the coverage does NOT show test info on the console, which makes it annoying to debug)
-	`grunt e2e` to run protractor/selenium e2e frontend tests
+	`grunt e2e` to run protractor/node_modules/webdriver-manager/selenium e2e frontend tests
 	`grunt test-frontend` - run all frontend tests (unit & e2e)
 	`grunt node-cov` to run just backend node tests AND do coverage (show report and fail if below threshold) - only this task will actually show coverage and fail on the CONSOLE but the coverage report will always be written
 	`grunt test-backend` to just test backend - NOTE: there's really no reason to use this; just use `node-cov` or `test-backend-dev` instead.
@@ -135,7 +135,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-exit');
 	grunt.loadNpmTasks('grunt-dev-update');
-	
+
 
 	/**
 	Function that wraps everything to allow dynamically setting/changing grunt options and config later by grunt task. This init function is called once immediately (for using the default grunt options, config, and setup) and then may be called again AFTER updating grunt (command line) options.
@@ -148,7 +148,7 @@ module.exports = function(grunt) {
 		@toc 4.
 		*/
 		grunt.log.writeln('init');
-		
+
 		//allow changing config file based on comman line options
 		if(grunt.option('config')) {
 			// grunt.log.writeln('config: '+grunt.option('config'));
@@ -159,42 +159,42 @@ module.exports = function(grunt) {
 		// var cfgJson = configFile;
 		var cfgJson =require(configFile);
 		// global.cfgJson = cfgJson;
-		
+
 		//get test config as well
 		//insert a '.test' at the end of the config as the test config naming convention
 		var configTestFile =configFile.slice(0, configFile.lastIndexOf('.'))+'.test'+configFile.slice(configFile.lastIndexOf('.'), configFile.length);
 		var cfgTestJson =require(configTestFile);
-		
+
 
 		// hardcoded paths
 		var protractorPath ='node_modules/protractor/bin/protractor';		//non-Windows
 		var pathPrefix ='';
 		pathPrefix ='node_modules/protractor/';
-		var seleniumStartupParts =['java', '-jar', pathPrefix+'selenium/selenium-server-standalone-2.47.1.jar', '-p', '4444', '-Dwebdriver.chrome.driver='+pathPrefix+'selenium/chromedriver'];
+		var seleniumStartupParts =['java', '-p', '4444', '-Dwebdriver.chrome.driver='+pathPrefix+'selenium/chromedriver', '-jar', pathPrefix+'node_modules/webdriver-manager/selenium/selenium-server-standalone-3.7.1.jar'];
 		if(cfgJson.operatingSystem !==undefined && cfgJson.operatingSystem =='windows') {
 			pathPrefix ='node_modules\\protractor\\';
 			protractorPath ='node_modules\\.bin\\protractor';		//Windows
-			seleniumStartupParts =['java', '-jar', pathPrefix+'selenium\\selenium-server-standalone-2.47.1.jar', '-p', '4444', '-Dwebdriver.chrome.driver='+pathPrefix+'selenium\\chromedriver.exe'];
+			seleniumStartupParts =['java', '-p', '4444', '-Dwebdriver.chrome.driver='+pathPrefix+'selenium\\chromedriver.exe', '-jar', pathPrefix+'node_modules\\webdriver-manager\\selenium\\selenium-server-standalone-3.7.1.jar'];
 		}
 		var seleniumStartup =seleniumStartupParts.join(' ');
 		var seleniumStartupCmd =seleniumStartupParts[0];
 		var seleniumStartupArgs =seleniumStartupParts.slice(1, seleniumStartupParts.length);
-		
+
 		var seleniumShutdown ='http://localhost:4444/selenium-server/driver/?cmd=shutDownSeleniumServer';		//do NOT need to use config server.scheme here?
-		
+
 		var publicPathRelativeRootNoSlash ="app/src";
 		var publicPathRelativeRoot =publicPathRelativeRootNoSlash+"/";
-		
+
 		var buildfilesPaths ={
 			modules: publicPathRelativeRoot+'config/buildfilesModules.json',
 			moduleGroups: publicPathRelativeRoot+'config/buildfilesModuleGroups.json'
 		};
 		var buildfilesModules = require('./'+buildfilesPaths.modules);		//the file with the object/arrays of all modules (directories and files to form paths for (css, js, html))
 		var buildfilesModuleGroups = require('./'+buildfilesPaths.moduleGroups);
-		
+
 		var publicPathRelative = publicPathRelativeRoot;
 		var publicPathRelativeDot = "./"+publicPathRelative;		//the "./" is necessary for some file paths to work in grunt tasks
-		
+
 		//relative to publicPathRelativeRoot folder (prepend this when using it)
 		var pathsPhonegap ={
 			android: "deploys/phonegap/platforms/android/assets/www",
@@ -229,7 +229,7 @@ module.exports = function(grunt) {
 			jasmine_node: cfgJson.test_coverage.jasmine_node,
 			angular_karma: cfgJson.test_coverage.angular_karma
 		};
-		
+
 		//declare config that will be used more than once to keep code DRY
 		var jsHintBackendConfig ={
 			options: {
@@ -321,7 +321,7 @@ module.exports = function(grunt) {
 				// customMinifyFile:   config.customMinifyFile,
 				buildfilesModules: buildfilesModules,		//define where your list of files/directories are for all your build assets
 				buildfilesModuleGroups: buildfilesModuleGroups,
-				
+
 				//this takes your buildfiles modules and moduleGroups of all js, css, html, etc. files and generates full paths to all these build assets then stuffs them into other grunt task file paths.
 				configPaths: {
 					//generic file lists for use elsewhere
@@ -818,27 +818,27 @@ module.exports = function(grunt) {
 					files: [],		//will be filled by grunt-buildfiles
 					tasks: ['karma-cov']
 				},
-				
+
 				//run buildfiles pretty much any time a file changes (since this generates file lists for other tasks - will this work / update them since grunt is already running??)
 				buildfiles: {
 					files: [
 						//buildfiles json
 						buildfilesPaths.modules, buildfilesPaths.moduleGroups,
-						
+
 						//js - don't actually need to rebuild if these change?
 						// '*.js', 'app/**/*.js', '!app/configs/**/*.js', '!app/src/bower_components/**/*.js', '!app/src/build/**/*.js', '!app/src/lib/**/*.js'
 					],
 					// tasks: ['buildfiles']
 					tasks: ['q-watch']
 				},
-				
+
 				//build template cache for HTML partials if an HTML file changes
 				html: {
 					files: [],		//will be filled by grunt-buildfiles
 					// tasks: ['ngtemplates:main']
 					tasks: ['q-watch']
 				},
-				
+
 				<%
 				if(optCssPreprocessor =='less') {
 					print("//compile less if a less file changes\n"+
@@ -857,34 +857,34 @@ module.exports = function(grunt) {
 					"\t\t\t\t},");
 				}
 				%>
-				
+
 				//lint frontend if a frontend js file changes
 				jsHintFrontend: {
 					files: [],		//will be filled by grunt-buildfiles
 					// tasks: ['jshint:beforeconcatQ']
 					tasks: ['q-watch']
 				},
-				
+
 				//lint backend if a backend js file changes
 				jsHintBackend: {
 					files: ['*.js', 'app/**/*.js', '!app/configs/**/*.js', '!app/src/**/*.js'],
 					// tasks: ['jshint:backendQ']
 					tasks: ['q-watch']
 				},
-				
+
 				//run tests if a code file changes
 				karmaUnitJs: {
 					files: [],		//will be filled by grunt-buildfiles
 					tasks: ['karma:watch:run']
 				},
-				
+
 				//run tests if a test file changes
 				karmaUnitTest: {
 					files: [],		//will be filled by grunt-buildfiles
 					// files: ['app/src/modules/**/*.spec.js'],
 					tasks: ['karma:watch:run']
 				}
-				
+
 			},
 			foreverMulti: {
 				appServer: {
@@ -923,7 +923,7 @@ module.exports = function(grunt) {
 				// specFolders: ['app/modules/controllers', 'app/routes', 'app/test'],
 				requirejs: false,
 				forceExit: false,		//need this to be false otherwise it just exits after this task
-				
+
 				coverage: {
 					savePath: publicPathRelativeRoot+'coverage-node',		//needs to be a file in publicPathRelativeRoot otherwise will not be accessible to view from the node server!
 					excludes: [
@@ -1038,14 +1038,14 @@ module.exports = function(grunt) {
 				}
 			}
 		});
-		
-		
-		
+
+
+
 		/**
 		register/define grunt tasks
 		@toc 6.
 		*/
-		
+
 		/**
 		@toc 6.1.
 		@method outputCoverage
@@ -1070,8 +1070,8 @@ module.exports = function(grunt) {
 			msg+='\n';
 			grunt.log.subhead(msg);
 		});
-		
-		
+
+
 		var seleniumType ='local';
 		if(cfgTestJson.sauceLabs.user && cfgTestJson.sauceLabs.key) {
 			seleniumType ='sauce';
@@ -1079,10 +1079,10 @@ module.exports = function(grunt) {
 		else if(cfgTestJson.browserstack && cfgTestJson.browserstack.user && cfgTestJson.browserstack.access_key) {
 			seleniumType ='browserstack';
 		}
-		
+
 		var tasks =[];
 		var tasksSelenium =[];
-		
+
 		tasks =[];
 		// tasks =['http:nodeShutdown'];		//need to run node server from jasmine test to get coverage.. BUT do this just in case (won't hurt / just in case node test server was running from dev/watch task) - UPDATE: this will be shut down by test-backend task
 		//only do selenium if NOT using sauce labs
@@ -1091,9 +1091,9 @@ module.exports = function(grunt) {
 			tasksSelenium.push('http:seleniumShutdown');
 		}
 		grunt.registerTask('test-cleanup', tasks);
-		
+
 		// grunt.registerTask('test-server', ['parallel:testServer']);
-		
+
 		tasks =[];
 		// tasks =['shell:nodeServer'];		//need to run node server from jasmine test to get coverage..
 		//only do selenium if NOT using sauce labs
@@ -1102,19 +1102,19 @@ module.exports = function(grunt) {
 			tasksSelenium.push('shell:seleniumStartup');
 		}
 		grunt.registerTask('test-setup', tasks);
-		
+
 		grunt.registerTask('selenium-server', tasksSelenium);
-		
+
 		grunt.registerTask('node-test-server', ['http:nodeShutdown', 'shell:nodeServer']);
-		
+
 		grunt.registerTask('test-backend', ['http:nodeShutdown', 'jasmine_node']);
-		
+
 		//faster / dev test task
 		grunt.registerTask('test-backend-dev', 'run backend tests', function() {
 			process.argv.push('runjs=no');		//add command line argument to NOT require / run run.js
 			grunt.task.run(['jasmine_node']);
 		});
-		
+
 		//need to exit otherwise coverage report doesn't display on the console..
 		grunt.registerTask('node-cov', ['test-backend', 'exit']);
 
@@ -1127,18 +1127,18 @@ module.exports = function(grunt) {
 				tasksE2eIso =['parallel:protractor'];
 			}
 		}
-		
+
 		//shorthand for 'shell:protractor' (this assumes node & selenium servers are already running so will NOT work by itself)
 		grunt.registerTask('e2e-iso', tasksE2eIso);
-		
+
 		//standalone task - starts & stops selenium AND node servers before/after
 		grunt.registerTask('e2e', ['test-cleanup', 'node-test-server', 'test-setup', 'shell:protractor', 'test-cleanup', 'http:nodeShutdown']);
-		
+
 		grunt.registerTask('karma-cov', ['clean', 'karma:unit', 'coverage']);
-		
+
 		//can NOT be run by itself as it will fail/error without selenium AND node servers started/stopped before/after
 		grunt.registerTask('test-frontend-iso', ['karma-cov', 'e2e-iso']);
-		
+
 		//standalone task - starts & stops selenium AND node servers before/after
 		grunt.registerTask('test-frontend', ['test-cleanup', 'node-test-server', 'test-setup', 'karma-cov', 'e2e-iso', 'test-cleanup', 'http:nodeShutdown']);
 
@@ -1146,14 +1146,14 @@ module.exports = function(grunt) {
 			// grunt.task.run(['test-backend', 'test-frontend-iso']);
 			grunt.task.run(['test-cleanup', 'test-setup', 'test-backend', 'test-frontend-iso', 'test-cleanup']);
 		});
-		
+
 		//don't get "done, without errors" grunt completion with 'exit' task and this causes CI to not complete.. Also linux sometimes?? outputs the coverage even without 'exit'?
 		grunt.registerTask('test-cov', ['test', 'exit']);		//need to exit on this task to ensure backend coverage shows up and fails if below (otherwise it won't!!) - NOTE: this means that if this task is called (i.e. with 'default' task), it must be LAST since it will force exit after it's done!
 
 		grunt.registerTask('yui', ['yuidoc']);
 
 		grunt.registerTask('lint-backend', ['jshint:backend']);
-		
+
 		grunt.registerTask('build', ['clean', 'buildfiles', 'ngtemplates:main', 'fontAwesomeVars',
 			<%
 			if(optCssPreprocessor =='less') {
@@ -1222,7 +1222,7 @@ module.exports = function(grunt) {
 			%>
 			'jshint:backendQ', 'jshint:beforeconcatQ', 'uglify:build',
 			'concat:devCss', 'cssmin:dev', 'concat:devJs']);
-			
+
 		grunt.registerTask('q-watch', ['buildfiles', 'ngtemplates:main',
 			<%
 			if(optCssPreprocessor =='less') {
@@ -1234,13 +1234,13 @@ module.exports = function(grunt) {
 			%>
 			'jshint:backendQ', 'jshint:beforeconcatQ'
 		]);
-		
+
 		//Phonegap build
 		grunt.registerTask('phonegap', 'run Phonegap task', function() {
 			grunt.option('config', 'phonegap');
 			grunt.option('type', 'prod');
 			init({});		//re-init (since changed grunt options)
-		
+
 			grunt.task.run(['clean', 'buildfiles', 'ngtemplates:main', 'fontAwesomeVars',
 				<%
 				if(optCssPreprocessor =='less') {
@@ -1253,7 +1253,7 @@ module.exports = function(grunt) {
 				'uglify:build',
 				'concat:devCss', 'cssmin:dev', 'concat:devJs', 'copy:phonegapAndroid', 'copy:phonegapIOS']);
 		});
-		
+
 		grunt.registerTask('noMin', ['clean', 'buildfiles', 'ngtemplates:main', 'fontAwesomeVars',
 			<%
 			if(optCssPreprocessor =='less') {
@@ -1264,10 +1264,10 @@ module.exports = function(grunt) {
 			}
 			%>
 			'concat:devJsNoMin', 'concat:devCss']);
-		
+
 		//sauce labs tests
 		grunt.registerTask('sauce', ['parallel:sauce']);
-		
+
 		/**
 		Short version: Starts test servers then auto-runs 1. `grunt q` and 2. karma unit tests on file changes (so you do not have to manually run these commands all the time)
 		Long version:
@@ -1284,19 +1284,19 @@ module.exports = function(grunt) {
 		//test only
 		// grunt.registerTask('dev-test', ['q-watch', 'test-cleanup', 'test-setup', 'karma:watch:start', 'watch:karmaUnitJs', 'watch:karmaUnitTest']);		//doesn't work - watch isn't a multi-task..
 		grunt.registerTask('dev-test', ['q-watch', 'test-cleanup', 'test-setup', 'karma:watch:start', 'focus:test']);
-		
+
 		// grunt.registerTask('dev-karma-cov', ['q-watch', 'karma:watchCov:start', 'focus:testKarmaCov']);		//does not work.. get 'app/src/coverage-angular' does not exist..
 		grunt.registerTask('dev-karma-cov', ['q-watch', 'focus:testKarmaCov']);
-		
+
 		//build only
 		// grunt.registerTask('dev-build', ['q-watch', 'watch:buildfiles', 'watch:html', 'watch:less', 'watch:jsHintFrontend', 'watch:jsHintBackend']);		//doesn't work - watch isn't a multi-task..		//@todo - if do change this, make sure to add scss version!!
 		grunt.registerTask('dev-build', ['q-watch', 'focus:build']);
-		
+
 		//all (build & test)
 		grunt.registerTask('dev', ['test-cleanup', 'test-setup', 'q-watch', 'karma:watch:start', 'focus:all']);
-	
+
 	}
-	
+
 	init({});		//initialize here for defaults (init may be called again later within a task)
 
 };

@@ -10,7 +10,7 @@ There's LOTS of different testing definitions but in general we use 5:
 5. [large] Performance (speed, capacity, security). Aka "nonfunctional acceptance/E2E"
 
 ### Manual vs Automated
-- Automate as much as possible but some manual will be necessary (typically on UI/device testing and on acceptance testing where we get in front of real users and demo it). A last type of testing may thus be called “usability / exploratory testing” - this is manual testing and showcasing.
+- Automate as much as possible but some manual will be necessary (typically on UI/device testing and on acceptance testing where we get in front of real users and demo it). A last type of testing may thus be called ï¿½usability / exploratory testingï¿½ - this is manual testing and showcasing.
 
 ### Local / Single Configuration vs Remote / Multiple Configurations
 - Want BOTH:
@@ -54,7 +54,7 @@ See [test-coverage.md](test-coverage.md)
 			- `node_modules/protractor/bin/protractor app/src/config/protractor.conf.js`
 		- web address to Selenium server (can be local or remote)
 			- for local:
-				- in 1 command prompt window, start the selenium server: `java -jar selenium/selenium-server-standalone-2.39.0.jar -p 4444 -Dwebdriver.chrome.driver=selenium/chromedriver`
+				- in 1 command prompt window, start the selenium server: `java  -p 4444 -Dwebdriver.chrome.driver=selenium/chromedriver -jar selenium/selenium-server-standalone-3.7.1.jar`
 					- NOTE: on Windows, need to put '.exe' at the end of chromedriver otherwise it won't work
 				- then in the 2nd command prompt window, run protractor as usual (once you've updated the protractor config file to use the selenium address - use the address that is displayed when running the standalone server directly from above) `node_modules/protractor/bin/protractor app/src/config/protractor.conf.js`
 					- NOTE: on Windows, can usually just use 'http://localhost:4444/wd/hub' even if the standalone starting url is not that (i.e. if it's 'http://192.168.1.6:4444/wd/hub')
