@@ -50,6 +50,6 @@ Grunt is the main automation / workflow tool. See `Gruntfile.js` for more info a
 	
 To ONLY run BACKEND (Node) tests, run `grunt test-backend`.
 
-To ONLY run FRONTEND (Angular) tests, run `grunt-frontend` BUT FIRST you must run the test server (this is normally auto-run by the backend tests) by doing:
+To ONLY run FRONTEND (Angular) tests, run `grunt test-frontend` BUT FIRST you must run the test server (this is normally auto-run by the backend tests) by doing:
 - Open a NEW command prompt/terminal window and type `node run.js config=test` to run the test server (this connects to the test database and wipes it clean on each run)
 	- NOTE: this used to be a required step before running ANY tests BUT it has been updated so that `app/test/all.spec.js` sets the test configuration command line args and requires `run.js` which thus self-runs the test server instead of needing to run in a separate window! And it exits when done so don't need to use forever to always keep the test server running and eating up resources!
